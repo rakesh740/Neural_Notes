@@ -2,12 +2,12 @@
 
 ## Overview
 
-This project provides a shell script (`transcribe_meetings.sh`) designed to automate the process of transcribing meetings. The script is intended to streamline the workflow of converting recorded meeting audio into text, making it easier to document, search, and share meeting content.
+This project provides a shell script (`transcribe_meetings.sh`) designed to automate the process of transcribing meetings. It leverages the [go-whisper](https://github.com/mutablelogic/go-whisper) package, which is a Go wrapper around [whisper.cpp](https://github.com/ggerganov/whisper.cpp), an efficient implementation of OpenAI's Whisper model for speech-to-text transcription. By default, the script uses the "medium" model for a balance of speed and accuracy. The script is intended to streamline the workflow of converting recorded meeting audio into text, making it easier to document, search, and share meeting content.
 
 ## What It Does
 
 - Takes an audio recording of a meeting as input.
-- Processes the audio file using a transcription service or tool (details depend on the script's implementation).
+- Processes the audio file using the go-whisper package (wrapper on whisper.cpp) and the Whisper "medium" model for transcription.
 - Outputs a text file containing the transcribed content of the meeting.
 
 ## Why Use This?
