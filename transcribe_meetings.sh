@@ -54,23 +54,29 @@ for file in "${files[@]}"; do
     no_ext="${base_name%.*}"
     output_file="$DEST_DIR/${no_ext}_clean_text.txt"
 
+    # Check file size (max 70 MB)
+    file_size_bytes=$(stat -f%z "$file")
+    max_size_bytes=$((70 * 1024 * 1024))
+    if [ "$file_size_bytes" -ge "$max_size_bytes" ]; then
+        echo "⚠️  Skipping $base_name (file size > 70 MB)"
+        continue
+    fi
+
     echo "──────────────────────────────────────────────────"
     echo "🎤 Transcribing: $base_name"
-    
-    # Transcribe -> Filter Timestamps -> Save
-    # We use -E for extended regex and [[:space:]] to handle various space types
-    $GOWHISPER_BIN transcribe "$MODEL" "$file" --format text | \
-    sed -E 's/\[.*\][[:space:]]+//' > "$output_file"
+
+    # Transcribe -> Format as mm:ss <text> -> Save
+    $GOWHISPER_BIN transcribe "$MODEL" "$file" --format srt | \
+    awk '/^[0-9]+$/ {getline; split($0, t, " --> "); start=t[1]; getline; text=$0; split(start, ts, ","); split(ts[1], t2, ":"); mm=t2[1]; ss=t2[2]; printf("%02d:%02d %s\n", mm, ss, text)}' > "$output_file"
 
     echo "✅ Saved to: $output_file"
+
+    # Move the processed file to Trash immediately after transcription
+    mv "$file" ~/.Trash/
+    echo "🗑️  Moved $base_name to Trash."
 done
 
 # --- Step 4: Final Cleanup ---
 echo "──────────────────────────────────────────────────"
 echo "🧹 All transcriptions successful."
-echo "🗑️  Moving source files from $SOURCE_DIR..."
-
-# Only moves if we reached this point without errors
-mv "$SOURCE_DIR"/*.m4a ~/.Trash/
-
 echo "✨ Process Complete."
